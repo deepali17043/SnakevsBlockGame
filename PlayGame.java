@@ -77,8 +77,8 @@ public class PlayGame extends Application {
 		H.setLayoutY(-50);
 		t.setNode(H);
 		t.setAutoReverse(false);
-		t.setByY(550);
-		t.setCycleCount(1);
+		t.setByY(600);
+		t.setCycleCount(Animation.INDEFINITE);
 		t.setDuration(Duration.millis(5000));
 	}
 	
@@ -88,42 +88,40 @@ public class PlayGame extends Application {
 			t[i] = new TranslateTransition();
 			declare(H[i], t[i]);
 		}
-		t[0].setOnFinished(e -> {
-			declare(H[0], t[0]);
-			t[0].play();
-		});
-		t[1].setOnFinished(e -> {
-			declare(H[1], t[1]);
-			
-		});
-		t[2].setOnFinished(e -> {
-			declare(H[2], t[2]);
-		});
-		t[3].setOnFinished(e -> {
-			declare(H[3], t[3]);
-		});
-		t[4].setOnFinished(e -> {
-			declare(H[4], t[4]);
-		});
-		t[5].setOnFinished(e -> {
-			declare(H[5], t[5]);
-		});
 	}
+	
+	private void fn(TranslateTransition t, HBox h) {
+		declare(h, t);
+		t.play();
+	}
+	
+	private static TranslateTransition[] tb;
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
 		primaryStage.setTitle("Snake vs. Block Game");
 		
+		AnchorPane A = new AnchorPane();
 		HBox[] H = new HBox[6];
-		TranslateTransition[] tb = new TranslateTransition[6];
+		tb = new TranslateTransition[6];
 		translatingblocks(H, tb);
 		Timeline timeline = new Timeline(
-			new KeyFrame(Duration.millis(1000), e -> tb[0].play()),
-			new KeyFrame(Duration.millis(2000), e -> tb[1].play()),
-			new KeyFrame(Duration.millis(3000), e -> tb[2].play()),
-			new KeyFrame(Duration.millis(4000), e -> tb[3].play()),
-			new KeyFrame(Duration.millis(5000), e -> tb[4].play()),
-			new KeyFrame(Duration.millis(6000), e -> tb[5].play())
+			new KeyFrame(Duration.millis(0), e -> { 
+				A.getChildren().removeAll(H[0]);
+				translatingblocks(H, tb);
+				A.getChildren().addAll(H);
+				fn(tb[0], H[0]);}),
+			new KeyFrame(Duration.millis(1000), e -> {
+				A.getChildren().remove(H[1]); fn(tb[1], H[1]);}),
+			new KeyFrame(Duration.millis(2000), e -> {
+				A.getChildren().remove(H[2]); fn(tb[2], H[2]);}),
+			new KeyFrame(Duration.millis(3000), e -> {
+				A.getChildren().remove(H[3]); fn(tb[3], H[3]);}),
+			new KeyFrame(Duration.millis(4000), e -> {
+				A.getChildren().remove(H[4]); fn(tb[4], H[4]);}),
+			new KeyFrame(Duration.millis(5000), e -> {
+				A.getChildren().remove(H[5]); fn(tb[5], H[5]);})
+			
 		);
 		timeline.setCycleCount(Animation.INDEFINITE);
 		timeline.play();
@@ -146,10 +144,9 @@ public class PlayGame extends Application {
 		h1.setPadding(new Insets(470, 0, 0, 0));
 		h1.setSpacing(10);
 		
-		AnchorPane A = new AnchorPane();
+		
 		A.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
-		A.getChildren().addAll(H);
 		A.getChildren().addAll(s.getsnake());
 		A.getChildren().add(h1);
 		
