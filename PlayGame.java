@@ -72,6 +72,33 @@ public class PlayGame extends Application {
 		return b;
 	}
 	
+	private Circle[] gentokens() {
+		Circle[] c = new Circle[4];
+		
+		c[0] = new Circle();
+		c[0].setCenterX(25);
+		c[0].setFill(Color.YELLOW);
+		c[0].setRadius(10);
+		
+		c[1] = new Circle();
+		c[1].setCenterX(75);
+		c[1].setFill(Color.RED);
+		c[1].setRadius(10);
+		
+		c[2] = new Circle();
+		c[2].setCenterX(125);
+		c[2].setFill(Color.BLUE);
+		c[2].setRadius(10);
+		
+		c[3] = new Circle();
+		c[3].setCenterX(175);
+		c[3].setFill(Color.GREEN);
+		c[3].setRadius(10);
+		
+		
+		return c;
+	}
+	
 	private void declare(HBox H, TranslateTransition t) {
 		H.getChildren().addAll(genblocks());
 		H.setLayoutY(-50);
@@ -82,14 +109,29 @@ public class PlayGame extends Application {
 		t.setDuration(Duration.millis(5000));
 	}
 	
+	private void declaretokens(HBox H, TranslateTransition t) {
+		H.getChildren().addAll(gentokens());
+		H.setSpacing(45);
+		H.setLayoutY(-50);
+		t.setNode(H);
+		t.setAutoReverse(false);
+		t.setByY(550);
+		t.setCycleCount(Animation.INDEFINITE);
+		t.setDuration(Duration.millis(5000));
+	}
+	
 	private void translatingblocks(HBox[] H, TranslateTransition[] t) {
+		
 		for(int i = 0; i < 6; i++) {
 			H[i] = new HBox();
 			t[i] = new TranslateTransition();
 			declare(H[i], t[i]);
 		}
+//		H[0] = new HBox();
+//		t[0] = new TranslateTransition();
+//		declaretokens(H[0], t[0]);
 		t[0].setOnFinished(e -> {
-			declare(H[0], t[0]);
+			declaretokens(H[0], t[0]);
 			t[0].play();
 		});
 		t[1].setOnFinished(e -> {
@@ -117,13 +159,20 @@ public class PlayGame extends Application {
 		HBox[] H = new HBox[6];
 		TranslateTransition[] tb = new TranslateTransition[6];
 		translatingblocks(H, tb);
+		AnchorPane A = new AnchorPane();
 		Timeline timeline = new Timeline(
-			new KeyFrame(Duration.millis(1000), e -> tb[0].play()),
-			new KeyFrame(Duration.millis(2000), e -> tb[1].play()),
-			new KeyFrame(Duration.millis(3000), e -> tb[2].play()),
-			new KeyFrame(Duration.millis(4000), e -> tb[3].play()),
-			new KeyFrame(Duration.millis(5000), e -> tb[4].play()),
-			new KeyFrame(Duration.millis(6000), e -> tb[5].play())
+			new KeyFrame(Duration.millis(0), e -> {
+				A.getChildren().remove(H[0]); tb[0].play(); A.getChildren().add(H[0]);}),
+			new KeyFrame(Duration.millis(2000), e -> {
+				A.getChildren().remove(H[1]); tb[1].play(); A.getChildren().add(H[1]);}),
+			new KeyFrame(Duration.millis(3000), e -> {
+				A.getChildren().remove(H[2]); tb[2].play(); A.getChildren().add(H[2]);}),
+			new KeyFrame(Duration.millis(4000), e -> {
+				A.getChildren().remove(H[3]); tb[3].play(); A.getChildren().add(H[3]);}),
+			new KeyFrame(Duration.millis(5000), e -> {
+				A.getChildren().remove(H[4]); tb[4].play(); A.getChildren().add(H[4]);}),
+			new KeyFrame(Duration.millis(6000), e -> {
+				A.getChildren().remove(H[5]); tb[5].play(); A.getChildren().add(H[5]);})
 		);
 		timeline.setCycleCount(Animation.INDEFINITE);
 		timeline.play();
@@ -146,7 +195,7 @@ public class PlayGame extends Application {
 		h1.setPadding(new Insets(470, 0, 0, 0));
 		h1.setSpacing(10);
 		
-		AnchorPane A = new AnchorPane();
+		
 		A.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
 		A.getChildren().addAll(H);
