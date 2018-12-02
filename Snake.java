@@ -18,16 +18,16 @@ public class Snake {
 		length = 0;
 		speed = 1; //(5 units/sec, forward)
 		c = new ArrayList<Circle>();
-		pos_x = 125; pos_y = 250;
-		for(int i = 0; i < 4; i++, pos_y = pos_y + 14, length++) {
-			c.add( new Circle(pos_x, pos_y, 7) );
-			c.get(i).setFill(Color.BLUEVIOLET);
+		pos_x = 150; pos_y = 275;
+		for(int i = 0; i < 4; i++, pos_y = pos_y + 20, length++) {
+			c.add( new Circle(pos_x, pos_y, 10) );
+			c.get(i).setFill(Color.DEEPSKYBLUE);
 		}
 	}
 	
 	public void inclength(int x) {
-		for(int i = 0; i < x; i++, pos_y = pos_y + 14, length++) {
-			c.add(new Circle(pos_x, pos_y, 7));
+		for(int i = 0; i < x; i++, pos_y = pos_y + 20, length++) {
+			c.add(new Circle(pos_x, pos_y, 10));
 			c.get(i).setFill(Color.BLUEVIOLET);
 		}
 		incspeed();
@@ -39,7 +39,7 @@ public class Snake {
 			t.add(new TranslateTransition());
 			t.get(i).setNode(c.get(i));
 			t.get(i).setAutoReverse(false);
-			t.get(i).setByX(-5);
+			t.get(i).setByX(-10);
 			t.get(i).setDuration(Duration.millis(10));
 			t.get(i).setCycleCount(1);
 		}
@@ -52,7 +52,7 @@ public class Snake {
 			t.add(new TranslateTransition());
 			t.get(i).setNode(c.get(i));
 			t.get(i).setAutoReverse(false);
-			t.get(i).setByX(5);
+			t.get(i).setByX(10);
 			t.get(i).setDuration(Duration.millis(10));
 			t.get(i).setCycleCount(1);
 		}
