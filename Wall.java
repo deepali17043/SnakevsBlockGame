@@ -1,32 +1,28 @@
 package application;
 
-import java.util.Random;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 public class Wall {
 	
-	private int length, pos_x, pos_y;
+	private int length, breadth;
+	private boolean visible;
 	
-	Wall(int l, int x, int y) {
-		assignlength(l);
-		pos_x = x;
-		pos_y = y;
+	public Wall(boolean v) {
+		visible = v;
+		length = 115;
+		breadth = 4;
 	}
 	
-	public void assignlength(int l) {
-		Random r = new Random();
-		length = r.nextInt(l);
-	}
-	
-	public int getlocationX() {
-		return pos_x;
-	}
-	
-	public int getlocationY() {
-		return pos_y;
-	}
-	
-	public int getlength() {
-		return length;
+	public Rectangle getWall() {
+		Rectangle r = new Rectangle();
+		
+		r.setHeight(length);
+		r.setWidth(breadth);
+		r.setVisible(visible);
+		r.setFill(Color.WHITE);
+		
+		return r;
 	}
 
 }
