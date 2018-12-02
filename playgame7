@@ -1,5 +1,7 @@
-AnchorPane A = new AnchorPane();
+		AnchorPane A = new AnchorPane();
 		
+		
+		//Objects translating downwards
 		HBox[] H = new HBox[5];
 		for(int i = 0; i < 5; i++) 
 			H[i] = new HBox();
@@ -12,7 +14,7 @@ AnchorPane A = new AnchorPane();
 					H1[1] = genblocks();
 					H1[2] = gentokens();
 					H1[3] = genblocks();
-					H1[4] = gentokens();
+					H1[4] = gentokens();					
 				}),
 				new KeyFrame(Duration.millis(1000), e -> {
 					A.getChildren().remove(H[0]);
@@ -48,6 +50,31 @@ AnchorPane A = new AnchorPane();
 		timeline.setCycleCount(Animation.INDEFINITE);
 		timeline.play();
 		
+		//handles collisions between snake and objects
+		HandleCollisions = new Timeline(
+				new KeyFrame(Duration.millis(1000), e -> {
+					//CheckForIntersectionsWithTokens();
+				}),
+				new KeyFrame(Duration.millis(2000), e -> {
+					System.out.println("second");
+					CollisionWithBlocks(primaryStage);
+				}),
+				new KeyFrame(Duration.millis(3000), e -> {
+					//CheckForIntersectionsWithTokens();
+				}),
+				new KeyFrame(Duration.millis(4000), e -> {
+					//CheckForIntersectionsWithTokens();
+				}),
+				new KeyFrame(Duration.millis(5000), e -> {
+					System.out.println("first");
+					CollisionWithBlocks(primaryStage);
+				})
+		);
+		HandleCollisions.setCycleCount(Animation.INDEFINITE);
+		HandleCollisions.setDelay(Duration.millis(3000));
+		HandleCollisions.playFrom(Duration.millis(3000));
+		
+		//Buttons on the game screen.
 		HBox h1 = new HBox();
 		showMenu = new Button("Options");
 		showMenu.setAlignment(Pos.BASELINE_RIGHT);
@@ -63,6 +90,7 @@ AnchorPane A = new AnchorPane();
 		showMenu.setOnAction(e -> {
 			pausetransitions();
 			timeline.pause();
+			HandleCollisions.pause();
 			time = timeline.getCurrentTime();
 			try {
 				primaryStage.setScene(menu.getMenu(primaryStage));
@@ -72,10 +100,18 @@ AnchorPane A = new AnchorPane();
 		});
 		
 		Exit.setOnAction(e -> {
-			Platform.exit();
-			System.exit(0);
+			//serialize
+			try {
+				HomePage.serialize();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} finally {
+				Platform.exit();
+				System.exit(0);
+			}
 		});
 		
+		//HBox containing buttons and game score
 		h1.getChildren().add(Exit);
 		h1.getChildren().add(sc);
 		h1.getChildren().add(showMenu);
@@ -86,11 +122,44 @@ AnchorPane A = new AnchorPane();
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
 		A.getChildren().addAll(snake.getsnake());
 		
-		StackPane s = new StackPane(A, h1);
+		//Screen to be displayed when game is paused
+		Label l1 = new Label("GAME\nPAUSED");
+		l1.setTextAlignment(TextAlignment.CENTER);
+		l1.setStyle("-fx-font: 25 arial; -fx-text-fill: MEDIUMSLATEBLUE;");
+		Label l2 = new Label("Press any key to continue");
+		l2.setTextAlignment(TextAlignment.CENTER);
+		l2.setStyle("-fx-font: 15 arial; -fx-text-fill: MEDIUMSLATEBLUE;");
+		Label l3 = new Label();
+		l3.setTextAlignment(TextAlignment.CENTER);
+		l3.setStyle("-fx-font: 20 arial; -fx-text-fill: MEDIUMSLATEBLUE;");
+		VBox GamePauseWindow = new VBox(l1, l2, l3);
+		GamePauseWindow.setPadding(new Insets(200, 0, 200, 0));
+		GamePauseWindow.setSpacing(40);
+		GamePauseWindow.setAlignment(Pos.CENTER);
 		
-		s.setOnKeyPressed((KeyEvent e) -> {
+		StackPane s = new StackPane(A, h1);
+		Scene scene = new Scene(s, 300, 500);
+		
+		scene.setOnKeyPressed((KeyEvent e) -> {
 			ArrayList<TranslateTransition> tc;
-			if(e.getCode().equals(KeyCode.LEFT) && snake.getPositionX() >= 10)
+			if(GamePaused) {
+				s.getChildren().remove(GamePauseWindow);
+				resumetransitions();
+				timeline.play();
+				HandleCollisions.play();
+				tc = new ArrayList<TranslateTransition>();
+				GamePaused = false; 
+			}
+			else if(e.getCode().equals(KeyCode.ENTER)) {
+				pausetransitions();
+				timeline.pause();
+				HandleCollisions.pause();
+				l3.setText("Current Score: " + score);
+				s.getChildren().add(GamePauseWindow);
+				tc = new ArrayList<TranslateTransition>();
+				GamePaused = true;
+			}
+			else if(e.getCode().equals(KeyCode.LEFT) && snake.getPositionX() >= 10)
 				tc = snake.moveleft();
 			else if(e.getCode().equals(KeyCode.RIGHT) && snake.getPositionX() <= 290) 
 				tc = snake.moveright();
@@ -100,7 +169,6 @@ AnchorPane A = new AnchorPane();
 				tc.get(i).play();
 		});
 		
-		Scene scene = new Scene(s, 300, 500);
 		primaryStage.setScene(scene);
 		
 		HideMenu.setOnAction(e -> {
