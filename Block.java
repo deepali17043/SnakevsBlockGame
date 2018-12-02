@@ -5,42 +5,57 @@ import java.util.Random;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
-public class Ball extends Tokens {
+public class Block { 
 	
 	private int value;
+	private boolean visible;
+	private Rectangle shape;
+	private Text val;
 	
-	public Ball(boolean set, PlayGame g) {
-		super(set, g);
+	public Block(boolean set, int x) {
 		Random r = new Random();
-		value = r.nextInt(10) + 1;
+		value = r.nextInt(x) + 1;
+		visible = set;
+		if(!visible) 
+			value = 0;
+		shape = new Rectangle();
+		shape.setLayoutX(50);
+		shape.setWidth(60);
+		shape.setHeight(50);
+		shape.setFill(Color.CORNFLOWERBLUE);
+		shape.setArcHeight(11);
+		shape.setArcWidth(11);
+		shape.setLayoutY(100);
 	}
 	
-	public int getvalue() {
+	public Rectangle getRectangle() {
+		return shape;
+	}
+	
+	public void destroy() {
+		shape.setVisible(false);
+		val.setVisible(false);
+		value = 0;
+		visible = false;
+	}
+	
+	public StackPane getBlock() {
+		StackPane s = new StackPane();
+		
+		val = new Text();
+		val.setText("" + value);
+		val.setStyle("-fx-font: 12 arial; -fx-base: #f4cc86; -fx-weight: bold;"
+					+ "-fx-text-fill: BLACK;");
+		
+		s.getChildren().addAll(shape, val);
+		s.setVisible(visible);
+		return s;
+	}
+	
+	public int getValue() {
 		return value;
 	}
-
-	@Override
-	public void destroy() {
-		if(!getvisibility())
-			return;
-		setvisibility(false);
-		//GamePlay.incsnakelength(value);
-	}
-
-	@Override
-	public StackPane getToken() {
-		Circle c = new Circle();
-		c.setRadius(10);
-		c.setFill(Color.YELLOW);
-		
-		Text t = new Text();
-		t.setText("" + value);
-		
-		addToPane(c, t);
-		
-		return getPane();
-	}
-
 }
