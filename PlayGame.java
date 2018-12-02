@@ -1,4 +1,3 @@
-
 package application;
 
 import java.util.ArrayList;
@@ -6,6 +5,7 @@ import java.util.Random;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -34,25 +34,53 @@ import javafx.util.Duration;
 public class PlayGame extends Application {
 	
 	private Button showMenu, Exit;
-	private Snake s;
-	private ArrayList<? extends Tokens> tokens;
+	private Snake snake;
+	private ArrayList<Tokens> tokens;
 	private DropDownMenu menu;
 	private ArrayList<Block> blocks;
 	private ArrayList<Wall> walls;
 	private int score;
 	private Timeline timeline;
 	private Label sc; // scores
+	private MainPage HomePage;
 	
 	public PlayGame() {
-		tokens = new ArrayList();
+		tokens = new ArrayList<Tokens>();
 		blocks = new ArrayList<Block>();
 		walls = new ArrayList<Wall>();
-		s = new Snake();
-		menu = new DropDownMenu();
+		HomePage = new MainPage();
+		menu = new DropDownMenu(this, HomePage);
+		score = 0;
+		snake = new Snake();
+	}
+	
+	public PlayGame(MainPage m) {
+		tokens = new ArrayList<Tokens>();
+		blocks = new ArrayList<Block>();
+		walls = new ArrayList<Wall>();
+		HomePage = m;
+		menu = new DropDownMenu(this, m);
+		score = 0;
+		snake = new Snake();
+	}
+	
+	public PlayGame(int snakelength, int scores, MainPage m) {
+		tokens = new ArrayList<Tokens>();
+		blocks = new ArrayList<Block>();
+		walls = new ArrayList<Wall>();
+		HomePage = m;
+		menu = new DropDownMenu(this, m);
+		score = scores;
+		snake = new Snake();
+		snake.inclength(snakelength-4);
 	}
 	
 	public int getscore() {
 		return score;
+	}
+	
+	public Snake getSnake() {
+		return snake;
 	}
 	
 	private HBox genblocks() {
@@ -60,9 +88,11 @@ public class PlayGame extends Application {
 		
 		Random r = new Random();
 		StackPane[] s = new StackPane[5];
+		int y = r.nextInt(5) + 1;
 		for(int j = 0; j < 5; j++) {
 			int x = r.nextInt(2);
-			Block b = new Block(j*60, (x==1));
+			Block b = new Block((x==1),
+					((j+1)%y == 0) ? s.length : 50);
 			blocks.add(b);
 			s[j] = b.getBlock();
 		}
@@ -72,44 +102,54 @@ public class PlayGame extends Application {
 	
 	private HBox gentokens() {
 		HBox h = new HBox();
-		Circle[] c = new Circle[4];
+		HBox wall = new HBox();
 		
-		c[0] = new Circle();
-		c[0].setFill(Color.RED); //shield
-		c[0].setRadius(10);
+		for(int i = 0; i < 5; i++) {
+			Random r = new Random();
+			Tokens t;
+			int n = r.nextInt(23);
+			int x = r.nextInt(4);
+			if(n < 1) 
+				t = new Magnet(x!=0, this);
+			else if(n < 21)
+				t = new Ball(x!=0, this);
+			else if(n < 22)
+				t = new Shield(x!=0, this);
+			else 
+				t = new DestroyBlocks(x!=0, this);
+			tokens.add(t);
+			h.getChildren().add(t.getToken());
+			
+			if(i < 4) {
+				int y = r.nextInt(5);
+				Wall w = new Wall(y==0);
+				walls.add(w);
+				wall.getChildren().add(w.getWall());
+			}
+		}
 		
-		c[1] = new Circle();
-		c[1].setFill(Color.BISQUE); //magnet
-		c[1].setRadius(10);
-		
-		c[2] = new Circle();
-		c[2].setFill(Color.YELLOW); //ball
-		c[2].setRadius(10);
-		
-		c[3] = new Circle();
-		c[3].setFill(Color.BLUE); //Destroy Blocks
-		c[3].setRadius(10);
-		
-		h.getChildren().addAll(c);
 		h.setSpacing(40);
-		return h;
+		h.setPadding(new Insets(0, 20, 0, 20));
+		
+		wall.setSpacing(56);
+		wall.setPadding(new Insets(0, 58, 0, 58));
+		
+		StackPane x = new StackPane();
+		x.getChildren().addAll(h, wall);
+		
+		HBox h1 = new HBox(x);
+		
+		return h1;
 	}
 	
-	private Group genwalls() {
-		Group root = new Group();
-		for(int i = 0; i < 4; i++) {
-			//generate walls at all times
-		}
-		return root;
-	}
 	
 	private void move(HBox H) {
 		TranslateTransition t = new TranslateTransition();
-		H.setLayoutY(-50);
+		H.setLayoutY(-115);
 		t.setNode(H);
 		t.setAutoReverse(false);
-		t.setByY(510);
-		t.setCycleCount(Animation.INDEFINITE);
+		t.setByY(550);
+		t.setCycleCount(1);
 		t.setDuration(Duration.millis(6000));
 		t.play();
 	}
@@ -120,6 +160,7 @@ public class PlayGame extends Application {
 		primaryStage.setTitle("Snake vs. Block Game");
 		
 		AnchorPane A = new AnchorPane();
+		
 		HBox[] H = new HBox[5];
 		for(int i = 0; i < 5; i++) 
 			H[i] = new HBox();
@@ -127,7 +168,7 @@ public class PlayGame extends Application {
 		for(int i = 0; i < 5; i++) 
 			H1[i] = new HBox();
 		timeline = new Timeline(
-				new KeyFrame(Duration.millis(10), e-> {
+				new KeyFrame(Duration.millis(0), e-> {
 					H1[0] = gentokens();
 					H1[1] = genblocks();
 					H1[2] = gentokens();
@@ -185,25 +226,25 @@ public class PlayGame extends Application {
 		h1.setPadding(new Insets(470, 0, 0, 0));
 		h1.setSpacing(40);
 		
-		
 		A.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
-		A.getChildren().addAll(s.getsnake());
-		A.getChildren().add(h1);
+		A.getChildren().addAll(snake.getsnake());
+		
+		StackPane s = new StackPane(A, h1);
 		
 		A.setOnKeyPressed((KeyEvent e) -> {
 			ArrayList<TranslateTransition> tc;
 			if(e.getCode().equals(KeyCode.LEFT))
-				tc = s.moveleft();
+				tc = snake.moveleft();
 			else if(e.getCode().equals(KeyCode.RIGHT)) 
-				tc = s.moveright();
+				tc = snake.moveright();
 			else 
 				tc = new ArrayList<TranslateTransition>();
 			for(int i = 0; i < tc.size(); i++)
 				tc.get(i).play();
 		});
 		
-		Scene scene = new Scene(A, 300, 500);
+		Scene scene = new Scene(s, 300, 500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
