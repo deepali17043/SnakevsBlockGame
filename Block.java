@@ -2,36 +2,60 @@ package application;
 
 import java.util.Random;
 
-public class Block {
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+
+public class Block { 
 	
-	private int value, pos_x, pos_y;
-	private String colour;
+	private int value;
+	private boolean visible;
+	private Rectangle shape;
+	private Text val;
 	
-	public Block(int max) {
+	public Block(boolean set, int x) {
 		Random r = new Random();
-		value = r.nextInt(max);
-		pos_x = r.nextInt(5);
-		pos_y = - 50 - r.nextInt(50);
+		value = r.nextInt(x) + 1;
+		visible = set;
+		if(!visible) 
+			value = 0;
+		shape = new Rectangle();
+		shape.setLayoutX(50);
+		shape.setWidth(60);
+		shape.setHeight(50);
+		shape.setFill(Color.CORNFLOWERBLUE);
+		shape.setArcHeight(11);
+		shape.setArcWidth(11);
+		shape.setLayoutY(100);
 	}
 	
-	public int getvalue() {
+	public Rectangle getRectangle() {
+		return shape;
+	}
+	
+	public void destroy() {
+		shape.setVisible(false);
+		val.setVisible(false);
+		value = 0;
+		visible = false;
+	}
+	
+	public StackPane getBlock() {
+		StackPane s = new StackPane();
+		
+		val = new Text();
+		val.setText("" + value);
+		val.setStyle("-fx-font: 12 arial; -fx-base: #f4cc86; -fx-weight: bold;"
+					+ "-fx-text-fill: BLACK;");
+		
+		s.getChildren().addAll(shape, val);
+		s.setVisible(visible);
+		return s;
+	}
+	
+	public int getValue() {
 		return value;
 	}
-	
-	public int getX() {
-		return pos_x;
-	}
-	
-	public int getY() {
-		return pos_y;
-	}
-
-	public String getColour() {
-		return colour;
-	}
-
-	public void setColour(String colour) {
-		this.colour = colour;
-	}
-
 }
