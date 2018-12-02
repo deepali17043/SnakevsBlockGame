@@ -11,41 +11,61 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-public class DropDownMenu extends Application {
+public class DropDownMenu {
 	
-	private Button restart, resume, exit;
+	private Button restart, resume, home;
+	private PlayGame gameplay;
+	private MainPage HomePage;
+	
+	public DropDownMenu(PlayGame g, MainPage m) {
+		gameplay = g;
+		HomePage = m;
+	}
 
-	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public Scene getMenu(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
-		primaryStage.setTitle("Menu");
 		
 		restart = new Button("New Game");
-		exit = new Button("Home");
+		home = new Button("Home");
 		resume = new Button("Resume Game");
 		
-		restart.setMaxWidth(Double.MAX_VALUE);
-		exit.setMaxWidth(Double.MAX_VALUE);
-		resume.setMaxWidth(Double.MAX_VALUE);
+		restart.setPrefSize(Double.MAX_VALUE, 30);
+		home.setPrefSize(Double.MAX_VALUE, 30);
+		resume.setPrefSize(Double.MAX_VALUE, 30);
 		
 		restart.setStyle("-fx-font: 12 arial; -fx-base: cornflowerblue; -fx-font-weight: Bold");
-		exit.setStyle("-fx-font: 12 arial; -fx-base:#d3ffe4; -fx-font-weight: Bold");
+		home.setStyle("-fx-font: 12 arial; -fx-base:#d3ffe4; -fx-font-weight: Bold");
 		resume.setStyle("-fx-font: 12 arial; -fx-base: cornflowerblue; -fx-font-weight: Bold");
 		
+		restart.setOnAction(e -> {
+			gameplay = new PlayGame(HomePage);
+			try {
+				gameplay.start(primaryStage);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		home.setOnAction(e -> {
+			//serialize
+			try {
+				HomePage.start(primaryStage);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+		});
+		resume.setOnAction(e -> {
+			gameplay.getHideMenu().fire();
+		});
+		
 		VBox v = new VBox();
-		v.setPadding(new Insets(10, 50, 50, 50));
-		v.setSpacing(10);
-		v.getChildren().addAll(restart, exit, resume);
+		v.setPadding(new Insets(40, 50, 50, 50));
+		v.setSpacing(60);
+		v.getChildren().addAll(restart, home, resume);
 		v.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(1), null)));
 		
-		Scene scene = new Scene(v);
-		primaryStage.setScene(scene);
-		primaryStage.show();
+		Scene scene = new Scene(v, 300, 500);
+		return scene;
 	}
 	
-	public static void main(String[] args) {
-		launch(args);
-	}
-
 }
