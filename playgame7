@@ -1,8 +1,325 @@
+package application;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
+
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+public class PlayGame extends Application {
+	
+	
+	private Button showMenu, Exit;
+	private Snake snake;
+	private ArrayList<Tokens> tokens;
+	private DropDownMenu menu;
+	private ArrayList<Block> blocks;
+	private ArrayList<Wall> walls;
+	private int score;
+	private Label sc; // scores
+	private MainPage HomePage;
+	private Button HideMenu;
+	private boolean GamePaused = false;
+	
+	private static TranslateTransition[] transitions = new TranslateTransition[5];
+	private static Timeline timeline, HandleCollisions;
+	private static int sumofcurblocks1 = 0, sumofcurblocks2 = 0, temp1 = 0, temp2 = 0;
+	private static ArrayList<Block> curblocks1, curblocks2, curblockstemp1, curblockstemp2;
+	private static Date lastshield = new Date(new Date().getTime() - 20);
+	private static Duration time;
+	
+	public PlayGame() throws ClassNotFoundException, IOException {
+		tokens = new ArrayList<Tokens>();
+		blocks = new ArrayList<Block>();
+		walls = new ArrayList<Wall>();
+		HomePage = new MainPage();
+		menu = new DropDownMenu(this, HomePage);
+		score = 0;
+		snake = new Snake();
+		HideMenu = new Button();
+		HideMenu.setVisible(false);
+	}
+	
+	public PlayGame(MainPage m) {
+		tokens = new ArrayList<Tokens>();
+		blocks = new ArrayList<Block>();
+		walls = new ArrayList<Wall>();
+		HomePage = m;
+		menu = new DropDownMenu(this, m);
+		score = 0;
+		snake = new Snake();
+		HideMenu = new Button();
+		HideMenu.setVisible(false);
+	}
+	
+	public PlayGame(int snakelength, int scores, MainPage m) {
+		tokens = new ArrayList<Tokens>();
+		blocks = new ArrayList<Block>();
+		walls = new ArrayList<Wall>();
+		HomePage = m;
+		menu = new DropDownMenu(this, m);
+		score = scores;
+		snake = new Snake();
+		snake.inclength(snakelength-4);
+		HideMenu = new Button();
+		HideMenu.setVisible(false);
+	}
+	
+	public Button getHideMenu() {
+		return HideMenu;
+	}
+	
+	public int getscore() {
+		return score;
+	}
+	
+	public int getSnakeLength() {
+		return snake.getlength();
+	}
+	
+	private HBox genblocks() {
+		HBox h = new HBox();
+		curblockstemp2 = new ArrayList<Block>();
+		temp2 = 0;
+		Random r = new Random();
+		StackPane[] s = new StackPane[5];
+		int y = r.nextInt(5) + 1;
+		for(int j = 0; j < 5; j++) {
+			int x = r.nextInt(2);
+			Block b = new Block((x==1),
+					((j+1)%y == 0) ? s.length : 50);
+			curblockstemp2.add(b);
+			blocks.add(b);
+			s[j] = b.getBlock();
+			temp2 += b.getValue();
+		}
+		h.getChildren().addAll(s);
+		return h;
+	}
+	
+	private HBox gentokens() {
+		HBox h = new HBox();
+		HBox wall = new HBox();
+		
+		for(int i = 0; i < 5; i++) {
+			Random r = new Random();
+			Tokens t;
+			int n = r.nextInt(23);
+			int x = r.nextInt(4);
+			if(n < 1) 
+				t = new Magnet(x!=0, this);
+			else if(n < 21)
+				t = new Ball(x!=0, this);
+			else if(n < 22)
+				t = new Shield(x!=0, this);
+			else 
+				t = new DestroyBlocks(x!=0, this);
+			tokens.add(t);
+			h.getChildren().add(t.getToken());
+			
+			if(i < 4) {
+				int y = r.nextInt(5);
+				Wall w = new Wall(y==0);
+				walls.add(w);
+				wall.getChildren().add(w.getWall());
+			}
+		}
+		
+		h.setSpacing(40);
+		h.setPadding(new Insets(0, 20, 0, 20));
+		
+		wall.setSpacing(56);
+		wall.setPadding(new Insets(0, 58, 0, 58));
+		
+		StackPane x = new StackPane();
+		x.getChildren().addAll(h, wall);
+		
+		HBox h1 = new HBox(x);
+		
+		return h1;
+	}
+	
+	private void move(HBox H, int i) {
+		TranslateTransition t = new TranslateTransition();
+		H.setLayoutY(-115);
+		t.setNode(H);
+		t.setAutoReverse(false);
+		t.setByY(650);
+		t.setCycleCount(1);
+		t.setDuration(Duration.millis(6000));
+		t.play();
+		transitions[i] = t;
+	}
+	
+	private void pausetransitions() {
+		for(int i = 0; i < 5; i++) 
+			if(transitions[i] != null)
+				transitions[i].pause();
+	}
+	
+	private void resumetransitions() {
+		for(int i = 0; i < 5; i++)
+			if(transitions[i] != null)
+				transitions[i].play();
+	}
+	
+	private void gameover(Stage primaryStage) throws IOException {
+		HomePage.serialize(false);
+		score += snake.getlength();
+		HomePage.AddNewScore(score);
+		HomePage.serializeLeaderBoard();
+		pausetransitions();
+		timeline.stop();
+		HandleCollisions.stop();
+		Label l1 = new Label("GAME\nOVER");
+		l1.setTextAlignment(TextAlignment.CENTER);
+		l1.setStyle("-fx-font: 35 arial; -fx-text-fill: DEEPSKYBLUE;");
+		Label l2 = new Label("Press any key to go to close application");
+		l2.setTextAlignment(TextAlignment.CENTER);
+		l2.setStyle("-fx-font: 15 arial; -fx-text-fill: CYAN;");
+		Label l3 = new Label("Final Score: " + score);
+		l3.setTextAlignment(TextAlignment.CENTER);
+		l3.setStyle("-fx-font: 20 arial; -fx-text-fill: AQUA;");
+		VBox v = new VBox(l1, l2, l3);
+		v.setAlignment(Pos.CENTER);
+		v.setSpacing(60);
+		v.setBackground(new Background(
+				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
+		
+		Scene scene = new Scene(v, 300, 500);
+		
+		scene.setOnKeyPressed(e -> {
+			Platform.exit();
+			System.exit(0);
+		});
+		
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
+	
+	private void CollisionWithBlocks(Stage primaryStage, AnchorPane A) throws IOException {
+		int i = snake.getPositionX() / 60;
+		if(i < blocks.size() && i < 5) {
+			int x = blocks.get(i).getValue();
+			System.out.println(x);
+			if((new Date()).getTime() - lastshield.getTime() >= 5000) {
+				if(x >= snake.getlength()) {
+					gameover(primaryStage);
+					return;
+				}
+				//destroy block
+				//reduce length of snake
+				A.getChildren().removeAll(snake.getsnake());
+				snake.declength(x);
+				A.getChildren().addAll(snake.getsnake());
+				//increase score
+			}
+			blocks.get(i).destroy();
+			score += x;
+			sc.setText("Score:" + score);
+		}
+		//remove the current row of blocks from list of blocks
+		for(int j = 0; j < 5 && j < blocks.size(); j++) 
+			blocks.remove(0);
+	}
+	
+	private void removeballs(AnchorPane A) {
+		for(int i = 0; i < 5 && i < tokens.size(); i++) {
+			if(tokens.get(i).getClass() == Ball.class) {
+				Ball b = (Ball) tokens.get(i);
+				b.setvisibility(false);
+				A.getChildren().removeAll(snake.getsnake());
+				snake.declength(b.getvalue());
+				A.getChildren().addAll(snake.getsnake());
+			}
+		}
+	}
+	
+	private void destroyblocks() {
+		for(int i = 0; i < curblocks1.size(); i++)
+			curblocks1.get(i).destroy();
+		for(int i = 0; i < curblocks2.size(); i++)
+			curblocks2.get(i).destroy();
+	}
+	
+	private void CollisionsWithTokens(AnchorPane A) {
+		int i = snake.getPositionX();
+		for(int j = 0; j < 5 && j < tokens.size(); j++) {
+			int l = 60 * j + 20;
+			int h = l + 20;
+			if(l <= i && i <= h) {
+				if(tokens.get(j).getvisibility()) {
+					if (tokens.get(j).getClass() == Ball.class) {
+						Ball b = (Ball) tokens.get(j);
+						A.getChildren().removeAll(snake.getsnake());
+						System.out.println(b.getvalue());
+						snake.inclength(b.getvalue());
+						A.getChildren().addAll(snake.getsnake());
+					}
+					else if (tokens.get(j).getClass() == Magnet.class) {
+						removeballs(A);
+					}
+					else if (tokens.get(j).getClass() == Shield.class) {
+						lastshield = new Date();
+					}
+					else {
+						//DestroyBlocks class
+						destroyblocks();
+						score += sumofcurblocks1 + sumofcurblocks2;
+						sc.setText("Score: " + score);
+					}
+				}
+			}
+		}
+		for(int j = 0; j < 5 && j < tokens.size(); j++) {
+			tokens.remove(0);
+		}
+	}
+	
+	
+	
+	private static HBox[] H;
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		// TODO Auto-generated method stub
+		primaryStage.setTitle("Snake vs. Block Game");
+		
 		AnchorPane A = new AnchorPane();
 		
 		
 		//Objects translating downwards
-		HBox[] H = new HBox[5];
+		H = new HBox[5];
 		for(int i = 0; i < 5; i++) 
 			H[i] = new HBox();
 		HBox[] H1 = new HBox[5];
@@ -12,6 +329,8 @@
 				new KeyFrame(Duration.millis(0), e-> {
 					H1[0] = gentokens();
 					H1[1] = genblocks();
+					temp1 = temp2;
+					curblockstemp1 = curblockstemp2;
 					H1[2] = gentokens();
 					H1[3] = genblocks();
 					H1[4] = gentokens();					
@@ -25,6 +344,8 @@
 				new KeyFrame(Duration.millis(2000), e -> {
 					A.getChildren().remove(H[1]);
 					H[1] = H1[1];
+					sumofcurblocks1 = temp1;
+					curblocks1 = curblockstemp1;
 					A.getChildren().add(H[1]);
 					move(H[1], 1);
 				}),
@@ -37,6 +358,8 @@
 				new KeyFrame(Duration.millis(4000), e -> {
 					A.getChildren().remove(H[3]);
 					H[3] = H1[3];
+					sumofcurblocks2 = temp2;
+					curblocks2 = curblockstemp2;
 					A.getChildren().add(H[3]);
 					move(H[3], 3);
 				}),
@@ -53,26 +376,40 @@
 		//handles collisions between snake and objects
 		HandleCollisions = new Timeline(
 				new KeyFrame(Duration.millis(1000), e -> {
-					//CheckForIntersectionsWithTokens();
+					System.out.println("token second");
+					CollisionsWithTokens(A);
+					System.out.println("snake length: " + snake.getlength());
 				}),
 				new KeyFrame(Duration.millis(2000), e -> {
 					System.out.println("second");
-					CollisionWithBlocks(primaryStage);
+					try {
+						CollisionWithBlocks(primaryStage, A);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}),
 				new KeyFrame(Duration.millis(3000), e -> {
-					//CheckForIntersectionsWithTokens();
+					System.out.println("token third");
+					CollisionsWithTokens(A);
+					System.out.println("snake length: " + snake.getlength());
 				}),
 				new KeyFrame(Duration.millis(4000), e -> {
-					//CheckForIntersectionsWithTokens();
+					System.out.println("token first");
+					CollisionsWithTokens(A);
+					System.out.println("snake length: " + snake.getlength());
 				}),
 				new KeyFrame(Duration.millis(5000), e -> {
 					System.out.println("first");
-					CollisionWithBlocks(primaryStage);
+					try {
+						CollisionWithBlocks(primaryStage, A);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				})
 		);
 		HandleCollisions.setCycleCount(Animation.INDEFINITE);
-		HandleCollisions.setDelay(Duration.millis(3000));
-		HandleCollisions.playFrom(Duration.millis(3000));
+		HandleCollisions.setDelay(Duration.millis(4000));
+		HandleCollisions.playFrom(Duration.millis(4000));
 		
 		//Buttons on the game screen.
 		HBox h1 = new HBox();
@@ -102,7 +439,7 @@
 		Exit.setOnAction(e -> {
 			//serialize
 			try {
-				HomePage.serialize();
+				HomePage.serialize(true);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			} finally {
@@ -116,7 +453,7 @@
 		h1.getChildren().add(sc);
 		h1.getChildren().add(showMenu);
 		h1.setPadding(new Insets(470, 0, 0, 0));
-		h1.setSpacing(40);
+		h1.setSpacing(30);
 		
 		A.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
