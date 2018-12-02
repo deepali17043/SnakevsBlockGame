@@ -1,3 +1,4 @@
+
 package application;
 
 import java.util.ArrayList;
@@ -54,115 +55,65 @@ public class PlayGame extends Application {
 		return score;
 	}
 	
-	private Button[] genblocks() {
-		Random r = new Random();
-		Button[] b = new Button[5];
-		for(int j = 0; j < 5; j++) {
-			b[j] = new Button();
-			b[j].setDisable(true);
-			b[j].setPrefSize(50, 50);
-			int x = r.nextInt(2);
-			if(x == 0) {
-				b[j].setVisible(false);
-				continue;
-			}
-			Block y = new Block(50);
-			b[j].setText("" + y.getvalue());
-			b[j].setStyle("-fx-font: 12 arial; -fx-base: #f4cc86; -fx-weight: bold;"
-					+ "-fx-text-fill: BLACK;");
-			//System.out.println(y.getvalue());
-		}
-		return b;
-	}
-	
-	private Group genobjects() {
-		Group root = new Group();
-		for(int i = 0; i < 9; i++) {
-			//when i-> even generate a object
-			//when i-> odd, generate a wall
-		}
-		return root;
-	}
-	
-	private Circle[] gentokens() {
-		Group root = new Group();
+	private HBox genblocks() {
+		HBox h = new HBox();
 		
-		Circle[] c = new Circle[4];
-		c[0] = new Circle();
-		c[0].setLayoutX(25);
-		c[0].setFill(Color.RED); //shield\
-		root.getChildren().add(c[0]);
+		Random r = new Random();
+		StackPane[] s = new StackPane[5];
+		for(int j = 0; j < 5; j++) {
+			int x = r.nextInt(2);
+			Block b = new Block(j*60, (x==1));
+			blocks.add(b);
+			s[j] = b.getBlock();
+		}
+		h.getChildren().addAll(s);
+		return h;
+	}
 	
+	private HBox gentokens() {
+		HBox h = new HBox();
+		Circle[] c = new Circle[4];
+		
+		c[0] = new Circle();
+		c[0].setFill(Color.RED); //shield
+		c[0].setRadius(10);
+		
 		c[1] = new Circle();
-		c[1].setLayoutX(75);
 		c[1].setFill(Color.BISQUE); //magnet
-		root.getChildren().add(c[1]);
+		c[1].setRadius(10);
 		
 		c[2] = new Circle();
-		c[2].setLayoutX(125);
 		c[2].setFill(Color.YELLOW); //ball
-		root.getChildren().add(c[2]);
+		c[2].setRadius(10);
+		
 		c[3] = new Circle();
-		c[3].setLayoutX(175);
 		c[3].setFill(Color.BLUE); //Destroy Blocks
-		root.getChildren().add(c[3]);
+		c[3].setRadius(10);
 		
-		
-		return c;
+		h.getChildren().addAll(c);
+		h.setSpacing(40);
+		return h;
 	}
 	
 	private Group genwalls() {
 		Group root = new Group();
 		for(int i = 0; i < 4; i++) {
 			//generate walls at all times
-			
 		}
 		return root;
 	}
 	
-	private void move(HBox H, TranslateTransition t) {
+	private void move(HBox H) {
+		TranslateTransition t = new TranslateTransition();
 		H.setLayoutY(-50);
 		t.setNode(H);
 		t.setAutoReverse(false);
-		t.setByY(600);
-		t.setCycleCount(1);
+		t.setByY(510);
+		t.setCycleCount(Animation.INDEFINITE);
 		t.setDuration(Duration.millis(6000));
 		t.play();
 	}
 	
-	private HBox displayblocks() {
-		TranslateTransition t = new TranslateTransition();
-		HBox h = new HBox();
-		h.getChildren().addAll(genblocks());
-		move(h, t);
-		return h;
-	}
-	
-	private HBox displayobjects() {
-		TranslateTransition t = new TranslateTransition();
-		HBox h = new HBox();
-		h.getChildren().addAll(genobjects());
-		move(h,t);
-		return h;
-	}
-	
-	private HBox displaytokens() {
-		TranslateTransition t = new TranslateTransition();
-		HBox h = new HBox();
-		h.getChildren().addAll(gentokens());
-		move(h,t);
-		return h;
-	}
-	
-	private HBox displaywalls() {
-		TranslateTransition t = new TranslateTransition();
-		HBox h = new HBox();
-		h.getChildren().addAll(genwalls());
-		move(h,t);
-		return h;
-	}
-	
-	//private static TranslateTransition[] tb;
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
@@ -172,48 +123,47 @@ public class PlayGame extends Application {
 		HBox[] H = new HBox[5];
 		for(int i = 0; i < 5; i++) 
 			H[i] = new HBox();
+		HBox[] H1 = new HBox[5];
+		for(int i = 0; i < 5; i++) 
+			H1[i] = new HBox();
 		timeline = new Timeline(
-			new KeyFrame(Duration.millis(0), e-> {
-				//tokens 
-				//A.getChildren().remove(H[0]);
-				H[0] = displayblocks();
-				A.getChildren().add(H[0]);
-			}),
-			new KeyFrame(Duration.millis(2000), e -> {
-				//blocks
-				A.getChildren().remove(H[1]);
-				H[1] = displayblocks();
-				A.getChildren().add(H[1]);
-			})/*,
-			new KeyFrame(Duration.millis(2000), e -> {
-				//tokens
-				A.getChildren().remove(H[2]);
-				H[2] = displaytokens();
-				A.getChildren().add(H[2]);
-			}),
-			new KeyFrame(Duration.millis(3000), e-> {
-				//walls
-				A.getChildren().remove(H[3]);
-				H[3] = displaywalls();
-				A.getChildren().add(H[3]);
-			}),
-			new KeyFrame(Duration.millis(4000), e -> {
-				// tokens or individual blocks
-				A.getChildren().remove(H[4]);
-				H[4] = displayobjects();
-				A.getChildren().add(H[4]);
-			})
-			/*new KeyFrame(Duration.millis(2000), e -> {
-				A.getChildren().remove(H[1]); H[1] = fn(); A.getChildren().add(H[1]);}),
-			new KeyFrame(Duration.millis(4000), e -> {
-				A.getChildren().remove(H[2]); H[2] = fn(); A.getChildren().add(H[2]);}),
-			new KeyFrame(Duration.millis(6000), e -> {
-				A.getChildren().remove(H[3]); H[3] = fn(); A.getChildren().add(H[3]); }),
-			new KeyFrame(Duration.millis(8000), e -> {
-				A.getChildren().remove(H[4]); H[4] = fn(); A.getChildren().add(H[4]);}),
-			new KeyFrame(Duration.millis(10000), e -> {
-				A.getChildren().remove(H[5]); H[5] = fn(); A.getChildren().add(H[5]);})*/
-			
+				new KeyFrame(Duration.millis(10), e-> {
+					H1[0] = gentokens();
+					H1[1] = genblocks();
+					H1[2] = gentokens();
+					H1[3] = genblocks();
+					H1[4] = gentokens();
+				}),
+				new KeyFrame(Duration.millis(1000), e -> {
+					A.getChildren().remove(H[0]);
+					H[0] = H1[0];
+					A.getChildren().add(H[0]);
+					move(H[0]);
+				}),
+				new KeyFrame(Duration.millis(2000), e -> {
+					A.getChildren().remove(H[1]);
+					H[1] = H1[1];
+					A.getChildren().add(H[1]);
+					move(H[1]);
+				}),
+				new KeyFrame(Duration.millis(3000), e -> {
+					A.getChildren().remove(H[2]);
+					H[2] = H1[2];
+					A.getChildren().add(H[2]);
+					move(H[2]);
+				}),
+				new KeyFrame(Duration.millis(4000), e -> {
+					A.getChildren().remove(H[3]);
+					H[3] = H1[3];
+					A.getChildren().add(H[3]);
+					move(H[3]);
+				}),
+				new KeyFrame(Duration.millis(5000), e -> {
+					A.getChildren().remove(H[4]);
+					H[4] = H1[4];
+					A.getChildren().add(H[4]);
+					move(H[4]);
+				})
 		);
 		timeline.setCycleCount(Animation.INDEFINITE);
 		timeline.play();
@@ -232,9 +182,8 @@ public class PlayGame extends Application {
 		h1.getChildren().add(Exit);
 		h1.getChildren().add(sc);
 		h1.getChildren().add(showMenu);
-		h1.setAlignment(Pos.BASELINE_RIGHT);
 		h1.setPadding(new Insets(470, 0, 0, 0));
-		h1.setSpacing(10);
+		h1.setSpacing(40);
 		
 		
 		A.setBackground(new Background(
@@ -254,7 +203,7 @@ public class PlayGame extends Application {
 				tc.get(i).play();
 		});
 		
-		Scene scene = new Scene(A, 250, 500);
+		Scene scene = new Scene(A, 300, 500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
@@ -264,4 +213,3 @@ public class PlayGame extends Application {
 	}
 	
 }
-
