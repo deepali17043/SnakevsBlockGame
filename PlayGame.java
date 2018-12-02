@@ -1,6 +1,5 @@
 package application;
 
-import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -11,6 +10,7 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -39,6 +39,8 @@ public class PlayGame extends Application {
 	private ArrayList<Block> blocks;
 	private ArrayList<Wall> walls;
 	private int score;
+	private Timeline timeline;
+	private Label sc; // scores
 	
 	public PlayGame() {
 		tokens = new ArrayList();
@@ -66,113 +68,152 @@ public class PlayGame extends Application {
 			}
 			Block y = new Block(50);
 			b[j].setText("" + y.getvalue());
-			b[j].setStyle("-fx-font: 12 arial; -fx-base: #f4cc86; -fx-weight: BOLd;"
+			b[j].setStyle("-fx-font: 12 arial; -fx-base: #f4cc86; -fx-weight: bold;"
 					+ "-fx-text-fill: BLACK;");
+			//System.out.println(y.getvalue());
 		}
 		return b;
 	}
 	
+	private Group genobjects() {
+		Group root = new Group();
+		for(int i = 0; i < 9; i++) {
+			//when i-> even generate a object
+			//when i-> odd, generate a wall
+		}
+		return root;
+	}
+	
 	private Circle[] gentokens() {
+		Group root = new Group();
+		
 		Circle[] c = new Circle[4];
-		
 		c[0] = new Circle();
-		c[0].setCenterX(25);
-		c[0].setFill(Color.YELLOW);
-		c[0].setRadius(10);
-		
+		c[0].setLayoutX(25);
+		c[0].setFill(Color.RED); //shield\
+		root.getChildren().add(c[0]);
+	
 		c[1] = new Circle();
-		c[1].setCenterX(75);
-		c[1].setFill(Color.RED);
-		c[1].setRadius(10);
+		c[1].setLayoutX(75);
+		c[1].setFill(Color.BISQUE); //magnet
+		root.getChildren().add(c[1]);
 		
 		c[2] = new Circle();
-		c[2].setCenterX(125);
-		c[2].setFill(Color.BLUE);
-		c[2].setRadius(10);
-		
+		c[2].setLayoutX(125);
+		c[2].setFill(Color.YELLOW); //ball
+		root.getChildren().add(c[2]);
 		c[3] = new Circle();
-		c[3].setCenterX(175);
-		c[3].setFill(Color.GREEN);
-		c[3].setRadius(10);
+		c[3].setLayoutX(175);
+		c[3].setFill(Color.BLUE); //Destroy Blocks
+		root.getChildren().add(c[3]);
 		
 		
 		return c;
 	}
 	
-	private void declare(HBox H, TranslateTransition t) {
-		H.getChildren().addAll(genblocks());
-		H.setLayoutY(-50);
-		t.setNode(H);
-		t.setAutoReverse(false);
-		t.setByY(550);
-		t.setCycleCount(1);
-		t.setDuration(Duration.millis(5000));
-	}
-	
-	private void declaretokens(HBox H, TranslateTransition t) {
-		H.getChildren().addAll(gentokens());
-		H.setSpacing(45);
-		H.setLayoutY(-50);
-		t.setNode(H);
-		t.setAutoReverse(false);
-		t.setByY(550);
-		t.setCycleCount(Animation.INDEFINITE);
-		t.setDuration(Duration.millis(5000));
-	}
-	
-	private void translatingblocks(HBox[] H, TranslateTransition[] t) {
-		
-		for(int i = 0; i < 6; i++) {
-			H[i] = new HBox();
-			t[i] = new TranslateTransition();
-			declare(H[i], t[i]);
-		}
-//		H[0] = new HBox();
-//		t[0] = new TranslateTransition();
-//		declaretokens(H[0], t[0]);
-		t[0].setOnFinished(e -> {
-			declaretokens(H[0], t[0]);
-			t[0].play();
-		});
-		t[1].setOnFinished(e -> {
-			declare(H[1], t[1]);
+	private Group genwalls() {
+		Group root = new Group();
+		for(int i = 0; i < 4; i++) {
+			//generate walls at all times
 			
-		});
-		t[2].setOnFinished(e -> {
-			declare(H[2], t[2]);
-		});
-		t[3].setOnFinished(e -> {
-			declare(H[3], t[3]);
-		});
-		t[4].setOnFinished(e -> {
-			declare(H[4], t[4]);
-		});
-		t[5].setOnFinished(e -> {
-			declare(H[5], t[5]);
-		});
+		}
+		return root;
 	}
+	
+	private void move(HBox H, TranslateTransition t) {
+		H.setLayoutY(-50);
+		t.setNode(H);
+		t.setAutoReverse(false);
+		t.setByY(600);
+		t.setCycleCount(1);
+		t.setDuration(Duration.millis(6000));
+		t.play();
+	}
+	
+	private HBox displayblocks() {
+		TranslateTransition t = new TranslateTransition();
+		HBox h = new HBox();
+		h.getChildren().addAll(genblocks());
+		move(h, t);
+		return h;
+	}
+	
+	private HBox displayobjects() {
+		TranslateTransition t = new TranslateTransition();
+		HBox h = new HBox();
+		h.getChildren().addAll(genobjects());
+		move(h,t);
+		return h;
+	}
+	
+	private HBox displaytokens() {
+		TranslateTransition t = new TranslateTransition();
+		HBox h = new HBox();
+		h.getChildren().addAll(gentokens());
+		move(h,t);
+		return h;
+	}
+	
+	private HBox displaywalls() {
+		TranslateTransition t = new TranslateTransition();
+		HBox h = new HBox();
+		h.getChildren().addAll(genwalls());
+		move(h,t);
+		return h;
+	}
+	
+	//private static TranslateTransition[] tb;
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
 		primaryStage.setTitle("Snake vs. Block Game");
 		
-		HBox[] H = new HBox[6];
-		TranslateTransition[] tb = new TranslateTransition[6];
-		translatingblocks(H, tb);
 		AnchorPane A = new AnchorPane();
-		Timeline timeline = new Timeline(
-			new KeyFrame(Duration.millis(0), e -> {
-				A.getChildren().remove(H[0]); tb[0].play(); A.getChildren().add(H[0]);}),
+		HBox[] H = new HBox[5];
+		for(int i = 0; i < 5; i++) 
+			H[i] = new HBox();
+		timeline = new Timeline(
+			new KeyFrame(Duration.millis(0), e-> {
+				//tokens 
+				//A.getChildren().remove(H[0]);
+				H[0] = displayblocks();
+				A.getChildren().add(H[0]);
+			}),
 			new KeyFrame(Duration.millis(2000), e -> {
-				A.getChildren().remove(H[1]); tb[1].play(); A.getChildren().add(H[1]);}),
-			new KeyFrame(Duration.millis(3000), e -> {
-				A.getChildren().remove(H[2]); tb[2].play(); A.getChildren().add(H[2]);}),
+				//blocks
+				A.getChildren().remove(H[1]);
+				H[1] = displayblocks();
+				A.getChildren().add(H[1]);
+			})/*,
+			new KeyFrame(Duration.millis(2000), e -> {
+				//tokens
+				A.getChildren().remove(H[2]);
+				H[2] = displaytokens();
+				A.getChildren().add(H[2]);
+			}),
+			new KeyFrame(Duration.millis(3000), e-> {
+				//walls
+				A.getChildren().remove(H[3]);
+				H[3] = displaywalls();
+				A.getChildren().add(H[3]);
+			}),
 			new KeyFrame(Duration.millis(4000), e -> {
-				A.getChildren().remove(H[3]); tb[3].play(); A.getChildren().add(H[3]);}),
-			new KeyFrame(Duration.millis(5000), e -> {
-				A.getChildren().remove(H[4]); tb[4].play(); A.getChildren().add(H[4]);}),
+				// tokens or individual blocks
+				A.getChildren().remove(H[4]);
+				H[4] = displayobjects();
+				A.getChildren().add(H[4]);
+			})
+			/*new KeyFrame(Duration.millis(2000), e -> {
+				A.getChildren().remove(H[1]); H[1] = fn(); A.getChildren().add(H[1]);}),
+			new KeyFrame(Duration.millis(4000), e -> {
+				A.getChildren().remove(H[2]); H[2] = fn(); A.getChildren().add(H[2]);}),
 			new KeyFrame(Duration.millis(6000), e -> {
-				A.getChildren().remove(H[5]); tb[5].play(); A.getChildren().add(H[5]);})
+				A.getChildren().remove(H[3]); H[3] = fn(); A.getChildren().add(H[3]); }),
+			new KeyFrame(Duration.millis(8000), e -> {
+				A.getChildren().remove(H[4]); H[4] = fn(); A.getChildren().add(H[4]);}),
+			new KeyFrame(Duration.millis(10000), e -> {
+				A.getChildren().remove(H[5]); H[5] = fn(); A.getChildren().add(H[5]);})*/
+			
 		);
 		timeline.setCycleCount(Animation.INDEFINITE);
 		timeline.play();
@@ -181,7 +222,7 @@ public class PlayGame extends Application {
 		showMenu = new Button("Options");
 		showMenu.setAlignment(Pos.BASELINE_RIGHT);
 		showMenu.setStyle("-fx-font: 12 arial; -fx-base:#4c3ee0; -fx-text-fill: WHITE;");
-		Label sc = new Label();
+		sc = new Label();
 		sc.setText("Score: " + score);
 		sc.setStyle("-fx-font: 12 calibri; -fx-text-fill: #9d96e8;");
 		sc.setAlignment(Pos.BASELINE_CENTER);
@@ -198,7 +239,6 @@ public class PlayGame extends Application {
 		
 		A.setBackground(new Background(
 				new BackgroundFill(Color.BLACK, new CornerRadii(0), null)));
-		A.getChildren().addAll(H);
 		A.getChildren().addAll(s.getsnake());
 		A.getChildren().add(h1);
 		
@@ -214,7 +254,6 @@ public class PlayGame extends Application {
 				tc.get(i).play();
 		});
 		
-		//t.play();
 		Scene scene = new Scene(A, 250, 500);
 		primaryStage.setScene(scene);
 		primaryStage.show();
@@ -225,3 +264,4 @@ public class PlayGame extends Application {
 	}
 	
 }
+
