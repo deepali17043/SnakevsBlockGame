@@ -1,18 +1,45 @@
 package application;
 
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
+
 public abstract class Tokens {
 	
-	private int x, y; // x and y coordinates
+	private boolean visible;
+	private StackPane s;
+	protected PlayGame GamePlay;
 	
-	public int getx() {
-		return x;
+	public Tokens(boolean set, PlayGame g) {
+		visible = set;
+		s = new StackPane();
+		GamePlay = g;
 	}
 	
-	public int gety() {
-		return y;
+	protected void addToPane(Circle c) {
+		s.getChildren().add(c);
+		s.setVisible(visible);
 	}
 	
-	public abstract int getval();
+	protected void addToPane(Circle c, Text t) {
+		s.getChildren().addAll(c, t);
+		s.setVisible(visible);
+	}
+	
+	protected StackPane getPane() {
+		return s;
+	}
+	
+	protected boolean getvisibility() {
+		return visible;
+	}
+	
+	protected void setvisibility(boolean t) {
+		visible = t; 
+		s.setVisible(t);
+	}
+	
+	public abstract StackPane getToken();
 	
 	public abstract void destroy();
 
